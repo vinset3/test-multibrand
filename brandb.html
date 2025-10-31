@@ -41,13 +41,24 @@
                 <p class="text-sm text-gray-600">Your Authorization Code:</p>
                 <code id="auth-code" class="text-xs text-blue-700 bg-blue-100 p-2 rounded block break-all"></code>
             </div>
+
+            <!-- This section will display the token data -->
+            <div id="token-display" class="mt-8 p-4 bg-gray-50 rounded-lg text-left hidden">
+                <h3 class="font-semibold text-gray-700">Tokens Received!</h3>
+                
+                <p class="text-sm text-gray-600 mt-4 font-semibold">ID Token Claims:</p>
+                <pre><code id="id-token-claims" class="text-xs text-green-700 bg-green-100 p-2 rounded block break-all overflow-x-auto"></code></pre>
+
+                <p class="text-sm text-gray-600 mt-4 font-semibold">Access Token:</p>
+                <code id="access-token" class="text-xs text-blue-700 bg-blue-100 p-2 rounded block break-all overflow-x-auto">...truncated...</code>
+            </div>
         </div>
     </div>
 
     <script>
         // --- OIDC Configuration ---
         // !! REPLACE THESE VALUES !!
-        const oktaDomain = "vtest.oktapreview.com"; // e.g., dev-12345.okta.com
+        const oktaDomain = "login.vinset.org"; // e.g., dev-12345.okta.com
         const clientId = "0oac6o0de1r4zYznU0x7";     // From the OIDC app you created
         // !! -------------------- !!
         
@@ -84,6 +95,70 @@
             return base64;
         }
 
+        // --- JWT Parsing Helper ---
+        // Decodes the ID token to show the claims
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error("Error parsing JWT:", e);
+                return { error: "Could not parse ID token." };
+            }
+        }
+
+        // --- Token Exchange Function ---
+        async function exchangeCodeForToken(code, verifier) {
+            const tokenUrl = `https://${oktaDomain}/oauth2/default/v1/token`;
+            
+            const params = new URLSearchParams();
+            params.append('grant_type', 'authorization_code');
+            params.append('client_id', clientId);
+            params.append('redirect_uri', redirectUri);
+            params.append('code', code);
+            params.append('code_verifier', verifier);
+
+            try {
+                const response = await fetch(tokenUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Token exchange failed: ${errorData.error_description || response.statusText}`);
+                }
+
+                const tokenData = await response.json();
+                
+                // Success! Display the tokens.
+                document.getElementById('token-display').classList.remove('hidden');
+                
+                // Display Access Token
+                document.getElementById('access-token').innerText = tokenData.access_token;
+                
+                // Parse and display ID Token claims
+                const idTokenClaims = parseJwt(tokenData.id_token);
+                document.getElementById('id-token-claims').innerText = JSON.stringify(idTokenClaims, null, 2);
+
+                // Clean up session storage
+                sessionStorage.removeItem('pkce_code_verifier');
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('result').classList.remove('hidden');
+                document.getElementById('auth-code').innerText = `Error: ${error.message}`;
+                document.getElementById('auth-code').style.color = 'red';
+            }
+        }
+
         // --- Main Async Function ---
         // We use an async IIFE (Immediately Invoked Function Expression)
         // to handle the 'await' for the code challenge generation.
@@ -93,16 +168,22 @@
             const authCode = params.get('code');
 
             if (authCode) {
+                // We have an auth code! Exchange it for tokens.
                 console.log("Authorization Code found:", authCode);
-                document.getElementById('result').classList.remove('hidden');
-                document.getElementById('auth-code').innerText = authCode;
                 document.getElementById('login-button').classList.add('hidden');
                 
-                // You would now exchange this code for a token.
-                // You'd need to send this 'authCode' AND the 'code_verifier'
-                // that we stored in sessionStorage to your token endpoint.
                 const storedVerifier = sessionStorage.getItem('pkce_code_verifier');
-                console.log("PKCE Verifier from storage:", storedVerifier);
+                
+                if (storedVerifier) {
+                    console.log("Exchanging code for token with verifier:", storedVerifier);
+                    // Call the new token exchange function
+                    exchangeCodeForToken(authCode, storedVerifier);
+                } else {
+                    console.error("Error: PKCE verifier not found in session storage.");
+                    document.getElementById('result').classList.remove('hidden');
+                    document.getElementById('auth-code').innerText = "Error: PKCE verifier not found. Please try logging in again.";
+                    document.getElementById('auth-code').style.color = 'red';
+                }
 
             } else {
                 // --- This runs on initial page load (before login) ---
@@ -137,4 +218,5 @@
     </script>
 </body>
 </html>
+
 
