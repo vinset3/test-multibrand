@@ -28,7 +28,7 @@
             <img src="https://placehold.co/150x40/457B9D/FFFFFF?text=Brand+B&font=inter" alt="Brand B Logo" class="mx-auto mb-6 h-10">
             
             <h1 class="text-3xl font-bold text-gray-800 mb-4">Welcome to Brand B</h1>
-            <p class="text-gray-600 mb-8">The future of digital blue-sky solutions.</p>
+            <p class="text-gray-600 mb-8">Your trusted partner in all things blue.</p>
             
             <!-- This is the OIDC Login Button -->
             <a id="login-button" href="#" class="brand-b-button text-white font-bold py-3 px-8 rounded-lg text-lg inline-block shadow-lg">
@@ -54,28 +54,87 @@
         // This should be the *final* URL of this page (e.g., from GitHub Pages)
         const redirectUri = window.location.href.split('?')[0];
         
-        // Construct the OIDC /authorize URL
-        const authorizeUrl = `https://${oktaDomain}/oauth2/default/v1/authorize?` +
-            `response_type=code` +
-            `&client_id=${clientId}` +
-            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-            `&scope=openid%20profile%20email%20phone` +
-            `&state=b-state-value` +
-            `&brand=brand-b`; // <-- This is the magic parameter!
+        // --- PKCE Helper Functions ---
 
-        // Set the link on the button
-        document.getElementById('login-button').href = authorizeUrl;
-
-        // Check for an auth code in the URL on page load
-        const params = new URLSearchParams(window.location.search);
-        const authCode = params.get('code');
-
-        if (authCode) {
-            console.log("Authorization Code found:", authCode);
-            document.getElementById('result').classList.remove('hidden');
-            document.getElementById('auth-code').innerText = authCode;
-            document.getElementById('login-button').classList.add('hidden');
+        // Function to generate a random string for the code verifier
+        function generateCodeVerifier() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+            let verifier = '';
+            // Length must be between 43 and 128
+            const length = Math.floor(Math.random() * (128 - 43 + 1)) + 43; 
+            for (let i = 0; i < length; i++) {
+                verifier += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return verifier;
         }
+
+        // Function to generate the code challenge from the verifier (SHA-256 hash)
+        async function generateCodeChallenge(verifier) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(verifier);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            
+            // Convert buffer to Base64 URL-safe string
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            let base64 = btoa(String.fromCharCode.apply(null, hashArray));
+            
+            // Base64 URL encoding replacements
+            base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            
+            return base64;
+        }
+
+        // --- Main Async Function ---
+        // We use an async IIFE (Immediately Invoked Function Expression)
+        // to handle the 'await' for the code challenge generation.
+        (async () => {
+            // Check for an auth code in the URL first (on redirect)
+            const params = new URLSearchParams(window.location.search);
+            const authCode = params.get('code');
+
+            if (authCode) {
+                console.log("Authorization Code found:", authCode);
+                document.getElementById('result').classList.remove('hidden');
+                document.getElementById('auth-code').innerText = authCode;
+                document.getElementById('login-button').classList.add('hidden');
+                
+                // You would now exchange this code for a token.
+                // You'd need to send this 'authCode' AND the 'code_verifier'
+                // that we stored in sessionStorage to your token endpoint.
+                const storedVerifier = sessionStorage.getItem('pkce_code_verifier');
+                console.log("PKCE Verifier from storage:", storedVerifier);
+
+            } else {
+                // --- This runs on initial page load (before login) ---
+                
+                // 1. Generate and store the verifier
+                const codeVerifier = generateCodeVerifier();
+                sessionStorage.setItem('pkce_code_verifier', codeVerifier);
+
+                // 2. Generate the challenge
+                const codeChallenge = await generateCodeChallenge(codeVerifier);
+                
+                // 3. Construct the OIDC /authorize URL with PKCE params
+                const authorizeUrl = `https://${oktaDomain}/oauth2/default/v1/authorize?` +
+                    `response_type=code` +
+                    `&client_id=${clientId}` +
+                    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                    `&scope=openid%20profile%20email%20phone` +
+                    `&state=b-state-value` + // <-- State value for Brand B
+                    `&brand=brand-b` + // <-- This is the magic parameter!
+                    `&code_challenge=${codeChallenge}` + // <-- PKCE Fix
+                    `&code_challenge_method=S256`;      // <-- PKCE Fix
+
+                // 4. Set the link on the button
+                document.getElementById('login-button').href = authorizeUrl;
+            }
+        })().catch(err => {
+            console.error("PKCE Setup Error:", err);
+            document.getElementById('login-button').innerText = "Error initializing login";
+            document.getElementById('login-button').style.backgroundColor = "gray";
+        });
+        
     </script>
 </body>
 </html>
+
