@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Brand B</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .brand-b-bg { background-color: #457B9D; }
+        .brand-b-text { color: #457B9D; }
+        .brand-b-button {
+            background-color: #457B9D;
+            transition: background-color 0.3s;
+        }
+        .brand-b-button:hover { background-color: #3d6a89; }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white shadow-xl rounded-lg overflow-hidden max-w-md w-full">
+        <!-- Header Image -->
+        <img src="https://placehold.co/600x300/457B9D/FFFFFF?text=Brand+B&font=inter" alt="Brand B Header" class="w-full h-48 object-cover">
+        
+        <div class="p-8 text-center">
+            <!-- Logo -->
+            <img src="https://placehold.co/150x40/457B9D/FFFFFF?text=Brand+B&font=inter" alt="Brand B Logo" class="mx-auto mb-6 h-10">
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">Welcome to Brand B</h1>
+            <p class="text-gray-600 mb-8">The future of digital blue-sky solutions.</p>
+            
+            <!-- This is the OIDC Login Button -->
+            <a id="login-button" href="#" class="brand-b-button text-white font-bold py-3 px-8 rounded-lg text-lg inline-block shadow-lg">
+                Login / Register
+            </a>
+            
+            <!-- This section will display the auth code after redirect -->
+            <div id="result" class="mt-8 p-4 bg-gray-50 rounded-lg text-left hidden">
+                <h3 class="font-semibold text-gray-700">Authentication Success!</h3>
+                <p class="text-sm text-gray-600">Your Authorization Code:</p>
+                <code id="auth-code" class="text-xs text-blue-700 bg-blue-100 p-2 rounded block break-all"></code>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- OIDC Configuration ---
+        // !! REPLACE THESE VALUES !!
+        const oktaDomain = "YOUR_OKTA_DOMAIN"; // e.g., dev-12345.okta.com
+        const clientId = "YOUR_CLIENT_ID";     // From the OIDC app you created
+        // !! -------------------- !!
+        
+        // This should be the *final* URL of this page (e.g., from GitHub Pages)
+        const redirectUri = window.location.href.split('?')[0];
+        
+        // Construct the OIDC /authorize URL
+        const authorizeUrl = `https://${oktaDomain}/oauth2/default/v1/authorize?` +
+            `response_type=code` +
+            `&client_id=${clientId}` +
+            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+            `&scope=openid%20profile%20email%20phone` +
+            `&state=b-state-value` +
+            `&brand=brand-b`; // <-- This is the magic parameter!
+
+        // Set the link on the button
+        document.getElementById('login-button').href = authorizeUrl;
+
+        // Check for an auth code in the URL on page load
+        const params = new URLSearchParams(window.location.search);
+        const authCode = params.get('code');
+
+        if (authCode) {
+            console.log("Authorization Code found:", authCode);
+            document.getElementById('result').classList.remove('hidden');
+            document.getElementById('auth-code').innerText = authCode;
+            document.getElementById('login-button').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
