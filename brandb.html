@@ -3,39 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Brand B</title>
+    <!-- Updated Title -->
+    <title>Welcome to CertainTeed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .brand-b-bg { background-color: #457B9D; }
-        .brand-b-text { color: #457B9D; }
-        .brand-b-button {
-            background-color: #457B9D;
-            transition: background-color 0.3s;
+        body { 
             font-family: 'Inter', sans-serif;
-            background-image: url('https://www.saint-gobain.com/sites/saint-gobain.com/files/styles/wysiwyg_fullwidth/public/media/image/2023-12/Chiffres-cles-carrieres.webp'); /* Your provided image */
+            /* Using the same background image as Brand A */
+            background-image: url('https://www.certainteed.com/sites/default/files/2023-07/MicrosoftTeams-image%20%282%29.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed; /* Fix the background */
-
         }
-        .brand-b-button:hover { background-color: #3d6a89; }
+        /* Add an overlay to the body to darken the background for readability */
+        body::before {
+            content: '';
+            position: fixed; /* Cover the whole viewport */
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4); /* Dark overlay */
+            z-index: -1; /* Place it behind the content */
+        }
+        /* Updated CSS variables to CertainTeed green */
+        .brand-b-bg { background-color: #00572B; }
+        .brand-b-text { color: #00572B; }
+        .brand-b-button {
+            background-color: #00572B;
+            transition: background-color 0.3s;
+        }
+        .brand-b-button:hover { background-color: #004422; }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="flex items-center justify-center min-h-screen">
 
-    <div class="bg-white shadow-xl rounded-lg overflow-hidden max-w-md w-full">
-        <!-- Header Image -->
-        <img src="https://placehold.co/600x300/457B9D/FFFFFF?text=Brand+B&font=inter" alt="Brand B Header" class="w-full h-48 object-cover">
+    <div class="bg-white shadow-xl rounded-lg overflow-hidden max-w-md w-full relative z-10">
+        <!-- Header Image - Updated to CertainTeed green -->
+        <img src="https://placehold.co/600x300/00572B/FFFFFF?text=CertainTeed&font=inter" alt="CertainTeed Header" class="w-full h-48 object-cover">
         
         <div class="p-8 text-center">
-            <!-- Logo -->
-            <img src="https://www.roofingcontractor.com/ext/resources/RC/2023/CertainTeed_Logo_2023.webp" alt="Brand B Logo" class="mx-auto mb-6 h-10">
+            <!-- Logo - Updated to CertainTeed logo -->
+            <img src="https://placehold.co/150x50/FFF/000?text=CertainTeed" alt="CertainTeed Logo" class="mx-auto mb-6 h-12">
             
-            <h1 class="text-3xl font-bold text-gray-800 mb-4">Welcome to Brand B</h1>
-            <p class="text-gray-600 mb-8">Your trusted partner in all things blue.</p>
+            <!-- Updated Text -->
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">Welcome to CertainTeed</h1>
+            <p class="text-gray-600 mb-8">Quality made certain. Satisfaction guaranteed.</p>
             
             <!-- This is the OIDC Login Button -->
             <a id="login-button" href="#" class="brand-b-button text-white font-bold py-3 px-8 rounded-lg text-lg inline-block shadow-lg">
@@ -65,8 +80,8 @@
     <script>
         // --- OIDC Configuration ---
         // !! REPLACE THESE VALUES !!
-        const oktaDomain = "login.vinset.org"; // e.g., dev-12345.okta.com
-        const clientId = "0oac6o0de1r4zYznU0x7";     // From the OIDC app you created
+        const oktaDomain = "login.vinset.org"; // Your custom domain
+        const clientId = "0oac6o0de1r4zYznU0x7";     // Your OIDC app's Client ID
         // !! -------------------- !!
         
         // This should be the *final* URL of this page (e.g., from GitHub Pages)
@@ -203,15 +218,18 @@
                 const codeChallenge = await generateCodeChallenge(codeVerifier);
                 
                 // 3. Construct the OIDC /authorize URL with PKCE params
-                const authorizeUrl = `https://${oktaDomain}/oauth2/default/v1/authorize?` +
-                    `response_type=code` +
-                    `&client_id=${clientId}` +
-                    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-                    `&scope=openid%20profile%20email%20phone` +
-                    `&state=b-state-value` + // <-- State value for Brand B
-                    `&brand=brand-b` + // <-- This is the magic parameter!
-                    `&code_challenge=${codeChallenge}` + // <-- PKCE Fix
-                    `&code_challenge_method=S256`;      // <-- PKCE Fix
+                const authorizeUrlParams = new URLSearchParams({
+                    response_type: 'code',
+                    client_id: clientId,
+                    redirect_uri: redirectUri,
+                    scope: 'openid profile email phone',
+                    state: 'a-state-value',
+                    brand: 'brand-b', // <-- This is the magic parameter!
+                    code_challenge: codeChallenge,
+                    code_challenge_method: 'S256'
+                });
+
+                const authorizeUrl = `https://${oktaDomain}/oauth2/default/v1/authorize?${authorizeUrlParams.toString()}`;
 
                 // 4. Set the link on the button
                 document.getElementById('login-button').href = authorizeUrl;
@@ -225,5 +243,4 @@
     </script>
 </body>
 </html>
-
 
