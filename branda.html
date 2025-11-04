@@ -1,49 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Brand A</title>
+    <!-- Updated Title --><title>Welcome to Saint-Gobain</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .brand-a-bg { background-color: #D90429; }
-        .brand-a-text { color: #D90429; }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-image: url('https://i.imgur.com/k9b8zL3.jpeg'); /* Your provided image */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed; /* Fix the background */
+        }
+        /* Add an overlay to the body to darken the background for readability */
+        body::before {
+            content: '';
+            position: fixed; /* Cover the whole viewport */
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4); /* Dark overlay */
+            z-index: -1; /* Place it behind the content */
+        }
+        /* Updated CSS variables to Saint-Gobain blue */
+        .brand-a-bg { background-color: #002855; }
+        .brand-a-text { color: #002855; }
         .brand-a-button {
-            background-color: #D90429;
+            background-color: #002855;
             transition: background-color 0.3s;
         }
-        .brand-a-button:hover { background-color: #b70323; }
+        .brand-a-button:hover { background-color: #001f44; }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="flex items-center justify-center min-h-screen">
 
-    <div class="bg-white shadow-xl rounded-lg overflow-hidden max-w-md w-full">
-        <!-- Header Image -->
-        <img src="https://placehold.co/600x300/D90429/FFFFFF?text=Brand+A&font=inter" alt="Brand A Header" class="w-full h-48 object-cover">
+    <div class="bg-white shadow-xl rounded-lg overflow-hidden max-w-md w-full relative z-10">
+        <!-- Header Image - Updated to Saint-Gobain blue --><img src="https://placehold.co/600x300/002855/FFFFFF?text=Saint-Gobain&font=inter" alt="Saint-Gobain Header" class="w-full h-48 object-cover">
         
         <div class="p-8 text-center">
-            <!-- Logo -->
-            <img src="https://placehold.co/150x40/D90429/FFFFFF?text=Brand+A&font=inter" alt="Brand A Logo" class="mx-auto mb-6 h-10">
+            <!-- Logo - Updated to Saint-Gobain blue --><img src="https://placehold.co/150x40/002855/FFFFFF?text=Saint-Gobain&font=inter" alt="Saint-Gobain Logo" class="mx-auto mb-6 h-10">
             
-            <h1 class="text-3xl font-bold text-gray-800 mb-4">Welcome to Brand A</h1>
-            <p class="text-gray-600 mb-8">Your fiery partner in all things red.</p>
+            <!-- Updated Text --><h1 class="text-3xl font-bold text-gray-800 mb-4">Welcome to Saint-Gobain</h1>
+            <p class="text-gray-600 mb-8">Making the world a better home.</p>
             
-            <!-- This is the OIDC Login Button -->
-            <a id="login-button" href="#" class="brand-a-button text-white font-bold py-3 px-8 rounded-lg text-lg inline-block shadow-lg">
+            <!-- This is the OIDC Login Button --><a id="login-button" href="#" class="brand-a-button text-white font-bold py-3 px-8 rounded-lg text-lg inline-block shadow-lg">
                 Login / Register
             </a>
             
-            <!-- This section will display the auth code after redirect -->
-            <div id="result" class="mt-8 p-4 bg-gray-50 rounded-lg text-left hidden">
+            <!-- This section will display the auth code after redirect --><div id="result" class="mt-8 p-4 bg-gray-50 rounded-lg text-left hidden">
                 <h3 class="font-semibold text-gray-700">Authentication Success!</h3>
                 <p class="text-sm text-gray-600">Your Authorization Code:</p>
                 <code id="auth-code" class="text-xs text-blue-700 bg-blue-100 p-2 rounded block break-all"></code>
             </div>
 
-            <!-- This section will display the token data -->
-            <div id="token-display" class="mt-8 p-4 bg-gray-50 rounded-lg text-left hidden">
+            <!-- This section will display the token data --><div id="token-display" class="mt-8 p-4 bg-gray-50 rounded-lg text-left hidden">
                 <h3 class="font-semibold text-gray-700">Tokens Received!</h3>
                 
                 <p class="text-sm text-gray-600 mt-4 font-semibold">ID Token Claims:</p>
@@ -58,8 +70,8 @@
     <script>
         // --- OIDC Configuration ---
         // !! REPLACE THESE VALUES !!
-        const oktaDomain = "login.vinset.org"; // e.g., dev-12345.okta.com
-        const clientId = "0oac6o0de1r4zYznU0x7";     // From the OIDC app you created
+        const oktaDomain = "login2.vinset.org"; // Your custom domain
+        const clientId = "0oac6o0de1r4zYznU0x7";     // Your OIDC app's Client ID
         // !! -------------------- !!
         
         // This should be the *final* URL of this page (e.g., from GitHub Pages)
@@ -69,7 +81,7 @@
 
         // Function to generate a random string for the code verifier
         function generateCodeVerifier() {
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234G_~';
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
             let verifier = '';
             // Length must be between 43 and 128
             const length = Math.floor(Math.random() * (128 - 43 + 1)) + 43; 
@@ -97,13 +109,10 @@
 
         // --- JWT Parsing Helper ---
         // Decodes the ID token to show the claims
-// --- JWT Parsing Helper ---
-        // Decodes the ID token to show the claims
         function parseJwt(token) {
             try {
                 const base64Url = token.split('.')[1];
                 const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                // The fix is on the next line:
                 const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
                     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
                 }).join(''));
@@ -199,15 +208,18 @@
                 const codeChallenge = await generateCodeChallenge(codeVerifier);
                 
                 // 3. Construct the OIDC /authorize URL with PKCE params
-                const authorizeUrl = `https://${oktaDomain}/oauth2/default/v1/authorize?` +
-                    `response_type=code` +
-                    `&client_id=${clientId}` +
-                    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-                    `&scope=openid%20profile%20email%20phone` +
-                    `&state=a-state-value` + // <-- State value for Brand A
-                    `&brand=brand-a` + // <-- This is the magic parameter!
-                    `&code_challenge=${codeChallenge}` + // <-- PKCE Fix
-                    `&code_challenge_method=S256`;      // <-- PKCE Fix
+                const authorizeUrlParams = new URLSearchParams({
+                    response_type: 'code',
+                    client_id: clientId,
+                    redirect_uri: redirectUri,
+                    scope: 'openid profile email phone',
+                    state: 'a-state-value',
+                    brand: 'brand-a', // <-- This is the magic parameter!
+                    code_challenge: codeChallenge,
+                    code_challenge_method: 'S256'
+                });
+
+                const authorizeUrl = `https://${oktaDomain}/oauth2/default/v1/authorize?${authorizeUrlParams.toString()}`;
 
                 // 4. Set the link on the button
                 document.getElementById('login-button').href = authorizeUrl;
